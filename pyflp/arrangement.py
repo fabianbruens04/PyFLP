@@ -233,7 +233,7 @@ class ChannelPLItem(PLItemBase, ModelReprMixin):
     """
 
     @property
-    def channel(self) -> Channel:
+    def channel(self) -> Channel | None:
         return self._kw["channel"]
 
     @channel.setter
@@ -249,7 +249,7 @@ class PatternPLItem(PLItemBase, ModelReprMixin):
     """
 
     @property
-    def pattern(self) -> Pattern:
+    def pattern(self) -> Pattern | None:
         return self._kw["pattern"]
 
     @pattern.setter
@@ -417,12 +417,14 @@ class Arrangement(EventModel):
                 if max_idx - item["track_rvidx"] != track_idx:
                     continue
 
+                # Autosaves can reference channels/patterns that are not in the file;
+                # keep such clips (position/length stay valid) with no model attached.
                 if item["item_index"] <= item["pattern_base"]:
                     iid = item["item_index"]
-                    items.append(ChannelPLItem(item, i, pl_evt, channel=channels[iid]))
+                    items.append(ChannelPLItem(item, i, pl_evt, channel=channels.get(iid)))
                 else:
                     num = item["item_index"] - item["pattern_base"]
-                    items.append(PatternPLItem(item, i, pl_evt, pattern=patterns[num]))
+                    items.append(PatternPLItem(item, i, pl_evt, pattern=patterns.get(num)))
             yield Track(ed, items=items)
 
 
