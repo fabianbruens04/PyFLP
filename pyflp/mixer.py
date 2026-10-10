@@ -410,7 +410,9 @@ class Insert(EventModel, ModelCollection[Slot]):
     def __iter__(self) -> Iterator[Slot]:
         """Iterator over the effect empty and used slots."""
         for idx, ed in enumerate(self.events.divide(SlotID.Index, *SlotID, *PluginID)):
-            yield Slot(ed, params=self._kw["params"].slots[idx])
+            # Inserts without a MixerID.Params entry (common in FL 2024/25) have no params.
+            params = self._kw.get("params")
+            yield Slot(ed, params=params.slots[idx] if params is not None else None)
 
     def __len__(self) -> int:
         try:
